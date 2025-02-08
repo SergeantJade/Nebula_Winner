@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Energy Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #0a0a1f;
+            color: #fff;
+            overflow-x: hidden;
+        }
+        
+        nav {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        nav .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+        
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+            padding: 0;
+        }
+        
+        nav a {
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+            padding: 0.5rem 0;
+            transition: color 0.3s;
+        }
+        
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #2ecc71;
+            transition: width 0.3s;
+        }
+        
+        nav a:hover {
+            color: #2ecc71;
+        }
+        
+        nav a:hover::after {
+            width: 100%;
+        }
+
+        .container { 
+            max-width: 1200px; 
+            margin: auto;
+            padding: 20px;
+            position: relative;
+        }
+
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #2ecc7188, #3498db88);
+            backdrop-filter: blur(10px);
+            color: white;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-glow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: -100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: scan 3s linear infinite;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.1);
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(5px);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at var(--x) var(--y), rgba(255,255,255,0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .metric {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            text-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+        }
+
+        .energy-source {
+            display: flex;
+            align-items: center;
+            margin: 1rem 0;
+            padding: 1rem;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .energy-icon { 
+            font-size: 2rem; 
+            margin-right: 1rem;
+        }
+
+        @keyframes scan {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        @media (max-width: 768px) {
+            nav .content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            nav ul {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .dashboard-grid { 
+                grid-template-columns: 1fr; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="content">
+            <img src="logo.png" alt="Logo" class="logo" />
+            <ul>
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="features.html">Features</a></li>
+                <li><a href="work.html">Gamified Simulation</a></li>
+                <li><a href="team.html">Team</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <canvas class="neural-bg" id="neuralBg"></canvas>
+    <div class="container">
+        <div class="dashboard-header">
+            <div class="header-glow"></div>
+            <h1>AI-Powered Energy Dashboard</h1>
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>Solar Panel Efficiency</h3>
+                <div class="metric">94.2%</div>
+                <canvas id="solarChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>Wind Energy Output</h3>
+                <div class="metric">12.8 MW</div>
+                <canvas id="windChart"></canvas>
+            </div>
+            <div class="card">
+                <h3>Grid Balance</h3>
+                <div class="metric">Optimal</div>
+                <canvas id="gridChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h3>Energy Sources</h3>
+            <div id="energySources"></div>
+        </div>
+    </div>
+
+    <script>
+        // Neural Background Animation
+        const canvas = document.querySelector('#neuralBg');
+        const ctx = canvas.getContext('2d');
+        let points = [];
+        let connections = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Point {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+        }
+
+        function init() {
+            points = Array.from({length: 50}, () => new Point());
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(10, 10, 31, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            points.forEach(point => {
+                point.update();
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = '#2ecc71';
+                ctx.fill();
+            });
+
+            points.forEach((point, i) => {
+                points.slice(i + 1).forEach(other => {
+                    const dist = Math.hypot(point.x - other.x, point.y - other.y);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(point.x, point.y);
+                        ctx.lineTo(other.x, other.y);
+                        ctx.strokeStyle = `rgba(46, 204, 113, ${1 - dist/150})`;
+                        ctx.stroke();
+                    }
+                });
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Interactive card effect
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--x', `${x}px`);
+                card.style.setProperty('--y', `${y}px`);
+            });
+        });
+
+        // Charts initialization
+        const charts = [];
+        const chartConfigs = [
+            { id: 'solarChart', color: '#2ecc71', label: 'Solar' },
+            { id: 'windChart', color: '#3498db', label: 'Wind' },
+            { id: 'gridChart', color: '#e74c3c', label: 'Grid' }
+        ];
+
+        const createChart = (config) => {
+            const ctx = document.getElementById(config.id).getContext('2d');
+            return new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({length: 24}, (_, i) => `${i}h`),
+                    datasets: [{
+                        label: config.label,
+                        data: Array.from({length: 24}, () => Math.floor(Math.random() * 100)),
+                        borderColor: config.color,
+                        fill: true,
+                        backgroundColor: `${config.color}22`
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { 
+                        y: { 
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255,255,255,0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255,255,255,0.1)'
+                            },
+                            ticks: {
+                                color: '#fff'
+                            }
+                        }
+                    }
+                }
+            });
+        };
+
+        const sources = [
+            { name: 'Solar', percentage: 45, icon: '☀️' },
+            { name: 'Wind', percentage: 30, icon: '🌪️' },
+            { name: 'Hydro', percentage: 15, icon: '💧' },
+            { name: 'Biomass', percentage: 10, icon: '🌱' }
+        ];
+
+        document.getElementById('energySources').innerHTML = sources
+            .map(source => `
+                <div class="energy-source">
+                    <span class="energy-icon">${source.icon}</span>
+                    <div><strong>${source.name}</strong> - ${source.percentage}%</div>
+                </div>
+            `).join('');
+
+        // Initialize everything
+        window.addEventListener('load', () => {
+            initCanvas();
+            init();
+            animate();
+            chartConfigs.forEach(config => charts.push(createChart(config)));
+        });
+
+        window.addEventListener('resize', initCanvas);
+
+        // Update charts
+        setInterval(() => {
+            charts.forEach(chart => {
+                const data = chart.data.datasets[0].data;
+                data.shift();
+                data.push(Math.floor(Math.random() * 100));
+                chart.update('none'); // Use 'none' mode for smoother updates
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoLearn - Energy Education</title>
+    <style>
+        /* Keeping the same styles from the original */
+        body {
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #0a0a1f;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        header {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            padding: 0.87rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo-container {
+            margin-left: 120px;
+        }
+
+        .nav-menu {
+            margin-right: 130px;
+        }
+        
+        .logo {
+            height: 40px;
+            width: auto;
+        }
+        
+        header ul {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            margin: 0;
+            padding: 0;
+        }
+        
+        header a {
+            color: #fff;
+            text-decoration: none;
+            position: relative;
+            padding: 0.1rem 0;
+            transition: color 0.3s;
+        }
+        
+        header a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: #2ecc71;
+            transition: width 0.3s;
+        }
+        
+        header a:hover {
+            color: #2ecc71;
+        }
+        
+        header a:hover::after {
+            width: 100%;
+        }
+
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .main-content {
+            position: relative;
+            z-index: 1;
+            padding: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .learning-modules {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .module-card {
+            background: rgba(26, 26, 26, 0.9);
+            border: 1px solid #2ecc71;
+            padding: 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+        }
+
+        .interactive-section {
+            background: rgba(26, 26, 26, 0.9);
+            padding: 2rem;
+            margin-top: 2rem;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .energy-calculator {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+        }
+
+        .calculator-input {
+            padding: 1rem;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 5px;
+        }
+
+        .calculator-input input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #2ecc71;
+            border-radius: 3px;
+            color: white;
+        }
+
+        .result-display {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(46, 204, 113, 0.2);
+            border-radius: 5px;
+        }
+
+        .eco-challenge {
+            padding: 1.5rem;
+            background: rgba(46, 204, 113, 0.1);
+            border-radius: 5px;
+            margin-top: 1rem;
+        }
+
+        .challenge-progress {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: #2ecc71;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .button {
+            background: #2ecc71;
+            color: #000;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+
+        .button:hover {
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            
+            .logo-container, .nav-menu {
+                margin: 0;
+            }
+            
+            header ul {
+                flex-direction: column;
+                text-align: center;
+                gap: 1rem;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="neural-bg" id="neuralBg"></canvas>
+    
+    <header>
+        <div class="logo-container">
+            <a href="/">
+                <img src="logo.png" alt="EcoLearn Logo" class="logo" />
+            </a>
+        </div>
+        <ul class="nav-menu">
+            <li><a href="index.html">Dashboard</a></li>
+                <li><a href="features.html">Features</a></li>
+                <li><a href="work.html">Gamified Simulation</a></li>
+                <li><a href="team.html">Team</a></li>
+        </ul>
+    </header>
+
+    <div class="main-content">
+        <h1>Interactive Energy Education</h1>
+        
+        <div class="learning-modules">
+            <div class="module-card" onclick="showCalculator()">
+                <h2>Home Energy Calculator</h2>
+                <p>Calculate your household energy consumption and get personalized saving tips</p>
+            </div>
+            <div class="module-card" onclick="showChallenge()">
+                <h2>30-Day Eco Challenge</h2>
+                <p>Join our community challenge to reduce energy consumption</p>
+            </div>
+            <div class="module-card" onclick="showLearning()">
+                <h2>Interactive Lessons</h2>
+                <p>Learn about renewable energy and conservation through interactive modules</p>
+            </div>
+        </div>
+
+        <div id="calculatorSection" class="interactive-section">
+            <h2>Home Energy Calculator</h2>
+            <div class="energy-calculator">
+                <div class="calculator-input">
+                    <label>Daily Hours of AC Usage</label>
+                    <input type="number" id="acHours" min="0" max="24" onchange="calculateEnergy()">
+                </div>
+                <div class="calculator-input">
+                    <label>Number of LED Bulbs</label>
+                    <input type="number" id="ledCount" min="0" onchange="calculateEnergy()">
+                </div>
+                <div class="calculator-input">
+                    <label>Hours of TV Usage</label>
+                    <input type="number" id="tvHours" min="0" max="24" onchange="calculateEnergy()">
+                </div>
+            </div>
+            <div class="result-display" id="calculatorResult"></div>
+        </div>
+
+        <div id="challengeSection" class="interactive-section">
+            <h2>30-Day Eco Challenge</h2>
+            <div class="eco-challenge">
+                <h3>Current Challenge: Reduce AC Usage</h3>
+                <p>Goal: Reduce AC usage by 2 hours per day</p>
+                <div class="challenge-progress">
+                    <div class="progress-bar" id="challengeProgress"></div>
+                </div>
+                <button class="button" onclick="updateProgress()">Log Today's Progress</button>
+            </div>
+        </div>
+
+        <div id="learningSection" class="interactive-section">
+            <h2>Interactive Energy Lessons</h2>
+            <div class="eco-challenge">
+                <h3>Renewable Energy Basics</h3>
+                <p>Learn about different types of renewable energy sources and their benefits</p>
+                <button class="button" onclick="startLesson()">Start Lesson</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Neural background animation (keeping the same from original)
+        const canvas = document.querySelector('.neural-bg');
+        const ctx = canvas.getContext('2d');
+        
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        const particles = [];
+        const particleCount = 100;
+        
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.radius = Math.random() * 2;
+            }
+            
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+            }
+        }
+        
+        for (let i = 0; i < particleCount; i++) {
+            particles.push(new Particle());
+        }
+        
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(46, 204, 113, 0.5)';
+            
+            particles.forEach(particle => {
+                particle.update();
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            particles.forEach((p1, i) => {
+                particles.slice(i + 1).forEach(p2 => {
+                    const dx = p1.x - p2.x;
+                    const dy = p1.y - p2.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 100) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(46, 204, 113, ${1 - distance / 100})`;
+                        ctx.lineWidth = 1;
+                        ctx.moveTo(p1.x, p1.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                });
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        
+        animate();
+
+        // New interactive functionality
+        function showCalculator() {
+            hideAllSections();
+            document.getElementById('calculatorSection').style.display = 'block';
+        }
+
+        function showChallenge() {
+            hideAllSections();
+            document.getElementById('challengeSection').style.display = 'block';
+        }
+
+        function showLearning() {
+            hideAllSections();
+            document.getElementById('learningSection').style.display = 'block';
+        }
+
+        function hideAllSections() {
+            document.querySelectorAll('.interactive-section').forEach(section => {
+                section.style.display = 'none';
+            });
+        }
+
+        function calculateEnergy() {
+            const acHours = document.getElementById('acHours').value || 0;
+            const ledCount = document.getElementById('ledCount').value || 0;
+            const tvHours = document.getElementById('tvHours').value || 0;
+
+            const acEnergy = acHours * 1500; // 1.5kW AC
+            const ledEnergy = ledCount * 10 * 5; // 10W LED * average 5 hours
+            const tvEnergy = tvHours * 100; // 100W TV
+
+            const totalEnergy = acEnergy + ledEnergy + tvEnergy;
+            const cost = totalEnergy * 0.12 / 1000; // $0.12 per kWh
+
+            const result = `
+                <h3>Daily Energy Consumption</h3>
+                <p>Total: ${(totalEnergy/1000).toFixed(2)} kWh</p>
+                <p>Estimated Cost: $${cost.toFixed(2)}</p>
+                <p>💡 Tip: Reducing AC usage by 1 hour could save $${((1500 * 0.12 / 1000)).toFixed(2)} per day</p>
+            `;
+
+            document.getElementById('calculatorResult').innerHTML = result;
+        }
+
+        let challengeDay = 0;
+        function updateProgress() {
+            challengeDay = Math.min(30, challengeDay + 1);
+            const progress = (challengeDay / 30) * 100;
+            document.getElementById('challengeProgress').style.width = `${progress}%`;
+        }
+
+        function startLesson() {
+            alert('Loading interactive lesson... (Demo)');
+        }
+    </script>
+</body>
+</html>
